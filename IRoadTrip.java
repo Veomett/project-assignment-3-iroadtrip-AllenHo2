@@ -7,50 +7,87 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 import java.io.IOException; // Add this import statement
+import java.util.regex.Pattern; // Add this import statement
+import java.util.regex.Matcher; // Add this import statement
 
 public class IRoadTrip {
 
+
+    private static String getKey(Matcher matcher, int position) {
+        // Move to the desired token position
+        for (int i = 1; i < position; i++) {
+            if (!matcher.find()) {
+                // Handle the case where there are not enough tokens
+                return null;
+            }
+        }
+        return matcher.group();
+    }
+
     public IRoadTrip(String[] args) {
         // Replace with your code
-        HashMap<String, List<String>> country = new HashMap<String, List<String>>();
-     //   HashMap<String, Integer> countriesBorder = new HashMap<String, Integer>();
-        if (args.length == 0) {
+        HashMap<String, HashMap<String, Integer>> country = new HashMap<String, HashMap<String, Integer>>();
+        if (args.length == 1) {
         try (BufferedReader reader = new BufferedReader(new FileReader("borders.txt"))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split("=|;");
                 String country1 = parts[0].trim();
-                ArrayList<String> borderCountryList = new ArrayList<>();
+               // ArrayList<String> borderCountryList = new ArrayList<>();
+                HashMap<String, Integer> borderCountryList = new HashMap<String, Integer>();
                 for(int i = 1; i < parts.length; i++){
-                    //parts = re.split(pattern, parts[i].trim);
-                    //String borderCountry = parts[i].trim();
-               // borderCountryList = country.put(country1, parts[i].trim());
-                   // borderCountryList = country.get(parts[i].trim());
-                    // borderCountryList.add(borderCountry);
-                    // if (borderCountryList == null) {
-                    //     borderCountry = parts[1];
-                    //     country.put(country1, borderCountryList);
-                    // } 
+                String borderingCountry = parts[i].trim();
                 if (borderCountryList == null) {
-                    //borderCountry = parts[1];
                     country.put(country1, borderCountryList);
                 } 
-                borderCountryList.add(parts[i].trim());
+                if(borderingCountry != null){
+                borderCountryList.put(borderingCountry, 0);
+                }
+              //  borderCountryList.add(borderingCountry);
                 country.put(country1, borderCountryList);
                 }
-                
-             //   String borderCountry = parts[1].trim();
-
-            
-
-             //   int distance = Integer.parseInt(parts[2]);
-
-               // HashMap<String, Integer> countriesBorder = country.get(country1);
-
-               // countriesBorder.put(country2, distance);
-
                 System.out.println(country1 + " " + borderCountryList ); 
-               // System.out.println(country1.get(borderCountry));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    } else if (args.length == 0){
+ try (BufferedReader reader = new BufferedReader(new FileReader("state_name.tsv"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+               // String[] parts = line.split("\\s+");
+                // String country1 = parts[1].trim();
+                // String countryCode = parts[1].trim();
+                HashMap<String, String> countryIDToCountryName = new HashMap<String, String>();     
+                Pattern pattern = Pattern.compile("\\b[\\S ]+\\b");
+                Matcher matcher = pattern.matcher(line);
+
+                if(matcher.find()){
+                 //String token = matcher.group();
+                 String key = getKey(matcher, 2);
+                 String keyValue = getKey(matcher, 2);
+                //countryIDToCountryName.put(key, "");
+               // while (matcher.find()) {
+                   // String value = matcher.group();
+                    countryIDToCountryName.put(key, keyValue);
+                   // System.out.println("Key: " + token);
+                    System.out.println("KeyGen: " + key);
+                    System.out.println("Value: " + countryIDToCountryName.get(key));
+                //}
+            }
+               // ArrayList<String> borderCountryList = new ArrayList<>();
+            //     for(int i = 1; i < parts.length; i++){
+            //     String borderingCountry = parts[i].trim();
+            //     if (borderCountryList == null) {
+            //         country.put(country1, borderCountryList);
+            //     } 
+            //     if(borderingCountry != null){
+            //     borderCountryList.put(borderingCountry, 0);
+            //     }
+            //   //  borderCountryList.add(borderingCountry);
+            //     country.put(country1, borderCountryList);
+            //     }
+               // System.out.println(country1 + " " + borderCountryList ); 
             }
         } catch (IOException e) {
             e.printStackTrace();
