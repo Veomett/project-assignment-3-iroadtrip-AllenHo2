@@ -84,7 +84,6 @@ public class IRoadTrip {
         // Move to the desired token position
         for (int i = 1; i < position; i++) {
             if (!matcher.find()) {
-                // Handle the case where there are not enough tokens
                 return null;
             }
         }
@@ -109,13 +108,26 @@ public class IRoadTrip {
 
 
     public void acceptUserInput() {
-        // Replace with your code
+        // try (Scanner myObj = new Scanner(System.in)) {
+        //     String country1;
+        //     String country2;
+
+        //     System.out.println("Enter the name of the first country (type EXIT to quit):");
+        //     country1 = myObj.nextLine();
+
+        //     System.out.println("Enter the name of the second country (type EXIT to quit):");
+        //     country2 = myObj.nextLine();
+        //     System.out.println("Country1 is: " + country1);
+        //     System.out.println("Country2 is: " + country2);
+        // }
         System.out.println("IRoadTrip - skeleton");
     }
 
 
     public static void main(String[] args) {
         IRoadTrip a3 = new IRoadTrip(args);
+        Graph g = new Graph(5);
+        System.out.println(g);
         // FileReader fr=null; 
         // try
         // { 
@@ -125,7 +137,6 @@ public class IRoadTrip {
         // { 
         //     System.out.println("File not found"); 
         // } 
-        
   
         a3.acceptUserInput();
     }
