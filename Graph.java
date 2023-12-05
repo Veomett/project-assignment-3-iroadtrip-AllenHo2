@@ -41,8 +41,8 @@ public class Graph {
         addCountry(neighbor);
 
         // Add the neighboring country
-        borders.get(country).put(neighbor, new Integer(neighbor));
-        borders.get(neighbor).put(country, new Integer(0));
+        borders.get(country).put(neighbor, 0);
+        borders.get(neighbor).put(country, 0);
     }
 
     public List<String> dijkstra(String start, String end) {
