@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.io.IOException; 
 import java.util.regex.Pattern; 
@@ -21,7 +22,7 @@ public class IRoadTrip {
     private HashMap<String, String> countryIDToCountryName = new HashMap<String, String>();   
     private HashMap<String, HashMap<String, Integer>> countryDistance= new HashMap<String, HashMap<String, Integer>>();
     private HashMap<String, Integer> countriesDistance = new HashMap<String, Integer>();
-
+    private HashMap<String, String> cases = new HashMap<String, String>();
     //private HashMap<String, HashMap<String, Integer>> countryToCountryDistance = new HashMap<String, HashMap<String, Integer>>();
  //   private HashMap<String,String> specialCases = new HashMap<String,String>();
     //private int distance;
@@ -30,6 +31,7 @@ public class IRoadTrip {
     public IRoadTrip(String[] args) {
         // Replace with your code
         if (args.length == 0) {
+            generateSpecialCases();
         try (BufferedReader reader = new BufferedReader(new FileReader("capdist.csv"))) {
             String line;
             int skipFirstLine = 0;
@@ -86,19 +88,25 @@ public class IRoadTrip {
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split("=|;");
                 String country1 = parts[0].trim(); // gets first country
+                if(cases.containsKey(country1)){
+                     country1 = cases.get(country1);
+                 }
                 HashMap<String, Integer> borderCountryList = new HashMap<String, Integer>(); // create a new HashMap for each country1
 
                 for (int i = 1; i < parts.length; i++) {
                     String[] stripBorders = parts[i].trim().split("\\s+\\d[\\d,]*\\s+km");
                     String borderingCountry = stripBorders[0].trim();
-
-                    if (borderingCountry != null) {
+                    if(cases.containsKey(borderingCountry)){
+                        borderingCountry = cases.get(borderingCountry);
+                    } 
+                     if (borderingCountry != null) {
                         borderCountryList.put(borderingCountry, getDistance(country1, borderingCountry));
                     }
                 }
 
                 country.put(country1, borderCountryList);
                 System.out.println(country1 + " " + borderCountryList);
+               // System.out.println(cases);
             
             }
         } catch (IOException e) {
@@ -107,7 +115,43 @@ public class IRoadTrip {
     }
     }
 
-   // private Map
+    private void generateSpecialCases(){
+        cases.put("United States", "United States of America");
+        cases.put("US", "United States of America");
+        cases.put("Czechia", "Czech Republic");
+        cases.put("Turkey (Turkiye)", "Turkey (Ottoman Empire");
+        cases.put("Turkey", "Turkey (Ottoman Empire");
+        cases.put("Korea, South", "Korea, Republic of");
+        cases.put("Korea, North", "Korea, People's Republic of");
+        cases.put("Timor-Leste", "East Timor");
+        cases.put("Cabo Verde", "Cape Verde");
+        cases.put("Cote d'Ivoire", "Ivory Coast");
+        cases.put("Gambia, The", "Gambia");
+        cases.put("Bahamas, The", "Bahamas");
+        cases.put("Czechia", "Czech Republic");
+        cases.put("North Macedonia", "Macedonia (Former Yugoslav Republic of");
+        cases.put("Belarus", "Belarus (Byelorussia");
+        cases.put("Macedonia", "Macedonia (Former Yugoslav Republic of");
+        cases.put("The Central African Republic", "Central African Republic");
+        cases.put("Congo, Democratic Republic of the", "Congo, Democratic Republic of (Zaire");
+        cases.put("Congo, Republic of the", "Congo");
+        cases.put("The Republic of the Congo", "Congo");
+        cases.put("Democratic Republic of the Congo", "Congo, Democratic Republic of (Zaire");
+        cases.put("Russia", "Russia (Soviet Union)");
+        cases.put("The Slovak Republic", "Slovakia");
+        cases.put("Zimbabwe", "Zimbabwe (Rhodesia");
+        cases.put("Iran", "Iran (Persia)");
+        cases.put("Botswana 0.15 km", "Botswana");
+        cases.put("Yemen", "Yemen (Arab Republic of Yemen");
+        cases.put("Cambodia", "Cambodia (Kampuchea");
+        cases.put("Tanzania", "Tanzania/Tanganyika");
+        cases.put("Vietnam", "Vietnam, Democratic Republic of");
+        cases.put("The Solomon Islands", "Solomon Islands");
+        cases.put("UK", "United Kingdom");
+        cases.put("The Vatican City", "Holy See (Vatican City)");
+        cases.put("Germany", "German Federal Republic");
+    }
+    
     private static String getKey(Matcher matcher, int position) {
         // Move to the desired token position
         for (int i = 1; i < position; i++) {
@@ -132,7 +176,7 @@ public class IRoadTrip {
                 Integer distance = country1Distances.get(country2ID);
                 
                 if (distance != null) {
-                 //   System.out.println("Distance: " + distance);
+                //    System.out.println("Distance: " + distance);
                     return distance;
                 }
             }
@@ -158,11 +202,12 @@ public class IRoadTrip {
             // Example: Check if USA has a border with Canada
            // graphOfCountries.addBorder("USA", "Canada");
            graphOfCountries = new Graph(country, countryDistance, countryIDToCountryName);
+           graphOfCountries.loadData(country);
             //xgraphOfCountries.addBorder("USA", "Mexico");
 
             // Example: Read distances information from file or other sources
-            graphOfCountries.addDistance("USA", "Canada", countryDistance.get("USA").get("Canada"));
-            graphOfCountries.addDistance("USA", "Mexico", 1500);
+         //   graphOfCountries.addDistance("USA", "Canada", countryDistance.get("USA").get("Canada"));
+         //   graphOfCountries.addDistance("USA", "Mexico", 1500);
 
             // Get user input for start and end countries
             try (Scanner scanner = new Scanner(System.in)) {
@@ -172,10 +217,10 @@ public class IRoadTrip {
                 System.out.print("Enter the end country: ");
                 String endCountry = scanner.nextLine().trim();
 
-                if(startCountry.equalsIgnoreCase("EXIT") || endCountry.equalsIgnoreCase("EXIT")){
-                    scanner.close();
-                    System.exit(1);
-                }
+                // if(startCountry.equalsIgnoreCase("EXIT") || endCountry.equalsIgnoreCase("EXIT")){
+                //     scanner.close();
+                //     System.exit(1);
+                // }
                 // Find the shortest path
         
                 // Display the result

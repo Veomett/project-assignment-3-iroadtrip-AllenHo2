@@ -18,6 +18,28 @@ public class Graph {
         this.borders = new HashMap<>();
     }
 
+
+    public void loadData(HashMap<String, HashMap<String, Integer>> countryData) {
+        for (Map.Entry<String, HashMap<String, Integer>> entry : countryData.entrySet()) {
+            String country = entry.getKey();
+            addCountry(country);
+
+            for (Map.Entry<String, Integer> neighborEntry : entry.getValue().entrySet()) {
+                String neighbor = neighborEntry.getKey();
+                int distance = neighborEntry.getValue();
+                addCountry(neighbor);
+
+                // Add edge with distance
+                distances.get(country).put(neighbor, distance);
+                distances.get(neighbor).put(country, distance);
+
+                // Add the neighboring country
+                borders.get(country).put(neighbor, 0);
+                borders.get(neighbor).put(country, 0);
+            }
+        }
+    }
+
     public void addCountry(String country) {
         if (!countries.containsKey(country)) {
             countries.put(country, new HashMap<>());
