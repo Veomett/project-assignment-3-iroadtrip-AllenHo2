@@ -17,13 +17,13 @@ import java.util.regex.Matcher;
 public class IRoadTrip {
 
     private HashMap<String, HashMap<String, Integer>> country = new HashMap<String, HashMap<String, Integer>>();
-    private HashMap<String, Integer> borderCountryList = new HashMap<String, Integer>();
+  //  private HashMap<String, Integer> borderCountryList = new HashMap<String, Integer>();
     private HashMap<String, String> countryIDToCountryName = new HashMap<String, String>();   
     private HashMap<String, HashMap<String, Integer>> countryDistance= new HashMap<String, HashMap<String, Integer>>();
     private HashMap<String, Integer> countriesDistance = new HashMap<String, Integer>();
 
-    private HashMap<String, HashMap<String, Integer>> countryToCountryDistance = new HashMap<String, HashMap<String, Integer>>();
-
+    //private HashMap<String, HashMap<String, Integer>> countryToCountryDistance = new HashMap<String, HashMap<String, Integer>>();
+ //   private HashMap<String,String> specialCases = new HashMap<String,String>();
     //private int distance;
     Graph graphOfCountries = new Graph(country, countryDistance, countryIDToCountryName);
 
@@ -52,8 +52,8 @@ public class IRoadTrip {
                 
                 countriesDistance.put(country2, distance);
             }
-        
-            System.out.println("Chinas: " + countryDistance.get("CHN"));
+            // System.out.println("WSM: " + countryDistance.get("WSM"));
+            // System.out.println("Chinas: " + countryDistance.get("CHN"));
         //    System.out.println(countryDistance);
             } catch (IOException e) {
                     e.printStackTrace();
@@ -85,20 +85,21 @@ public class IRoadTrip {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split("=|;");
-                String country1 = parts[0].trim(); //gets first country
-              //  this.borderCountryList = new HashMap<String, Integer>();
-                for(int i = 1; i < parts.length; i++){
-                String[] stripBorders = parts[i].trim().split("\\s+\\d[\\d,]*\\s+km");
-                String borderingCountry = stripBorders[0].trim();
-                    if (borderCountryList == null) {
-                        country.put(country1, borderCountryList);
-                    } else if(borderingCountry != null){
-                
-                    borderCountryList.put(borderingCountry, getDistance(country1, borderingCountry));
+                String country1 = parts[0].trim(); // gets first country
+                HashMap<String, Integer> borderCountryList = new HashMap<String, Integer>(); // create a new HashMap for each country1
+
+                for (int i = 1; i < parts.length; i++) {
+                    String[] stripBorders = parts[i].trim().split("\\s+\\d[\\d,]*\\s+km");
+                    String borderingCountry = stripBorders[0].trim();
+
+                    if (borderingCountry != null) {
+                        borderCountryList.put(borderingCountry, getDistance(country1, borderingCountry));
                     }
-                country.put(country1, borderCountryList);
                 }
-                //System.out.println(country1 + " " + borderCountryList ); 
+
+                country.put(country1, borderCountryList);
+                System.out.println(country1 + " " + borderCountryList);
+            
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -106,6 +107,7 @@ public class IRoadTrip {
     }
     }
 
+   // private Map
     private static String getKey(Matcher matcher, int position) {
         // Move to the desired token position
         for (int i = 1; i < position; i++) {
@@ -119,18 +121,23 @@ public class IRoadTrip {
         
     // }
 
-    public int getDistance (String country1, String country2) { //do the conversion in here
-        // Replace with your code
-       // System.out.println("Hashmap of Country ID to Country Name: " + countryIDToCountryName);
-       //System.out.println("Country 1: " + countryDistance.get("CHN"));
+    public int getDistance(String country1, String country2) {
         String country1ID = countryIDToCountryName.get(country1);
         String country2ID = countryIDToCountryName.get(country2);
-        if(country1 != null && country2 != null){
-            int distance = countryDistance.get(country1ID).get(country2ID);
-          //  System.out.println("Distance: " + distance);
-            return distance;
-        } 
-
+        
+        if (country1ID != null && country2ID != null) {
+            HashMap<String, Integer> country1Distances = countryDistance.get(country1ID);
+            
+            if (country1Distances != null) {
+                Integer distance = country1Distances.get(country2ID);
+                
+                if (distance != null) {
+                 //   System.out.println("Distance: " + distance);
+                    return distance;
+                }
+            }
+        }
+        
         return -1;
     }
 
@@ -199,8 +206,8 @@ public class IRoadTrip {
         return countryDistance;
     }
 
-    public HashMap<String, HashMap<String, Integer>> getCountryToCountryDistance() {
-        return countryToCountryDistance;
-    }
+    // public HashMap<String, HashMap<String, Integer>> getCountryToCountryDistance() {
+    //     return countryToCountryDistance;
+    // }
 }
 

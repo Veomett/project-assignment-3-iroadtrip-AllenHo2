@@ -11,13 +11,11 @@ public class Graph {
     private HashMap<String, HashMap<String, Integer>> countries;  // Hashmap for countries/nodes
     private HashMap<String, HashMap<String, Integer>> distances;  // Hashmap for distances between countries
     private HashMap<String, HashMap<String, Integer>> borders;  
-    private HashMap<String, String> countryIDToCountryName = new HashMap<String, String>();
 
     public Graph(HashMap<String, HashMap<String, Integer>> countries, HashMap<String, HashMap<String, Integer>> distances, HashMap<String, String> countryIDToCountryName) {
         this.countries = new HashMap<>();
         this.distances = new HashMap<>();
         this.borders = new HashMap<>();
-        this.countryIDToCountryName = new HashMap<>();
     }
 
     public void addCountry(String country) {
