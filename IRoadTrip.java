@@ -32,7 +32,7 @@ public class IRoadTrip {
    //  Graph graphOfCountries = new Graph(country);
 
     public IRoadTrip(String[] args) {
-        if (args.length != 3) {
+        if (args.length == 0) {
             generateSpecialCases();
         try (BufferedReader reader = new BufferedReader(new FileReader("capdist.csv"))) {
             String line;
@@ -99,6 +99,10 @@ public class IRoadTrip {
                         borderingCountry = cases.get(borderingCountry);
                     } 
                      if (borderingCountry != null) {
+                        int length = getDistance(country1, borderingCountry);
+                        if(length == -1){
+                            continue;
+                        }
                         borderCountryList.put(borderingCountry, getDistance(country1, borderingCountry));
                     }
                 }
