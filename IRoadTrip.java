@@ -1,13 +1,9 @@
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -15,7 +11,6 @@ import java.util.Scanner;
 import java.util.Set;
 import java.io.IOException; 
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 import java.util.regex.Matcher; 
 
 /**
@@ -25,95 +20,88 @@ import java.util.regex.Matcher;
 public class IRoadTrip {
 
     private HashMap<String, HashMap<String, Integer>> country = new HashMap<String, HashMap<String, Integer>>();
-    private HashMap<String, String> countryIDToCountryName = new HashMap<String, String>();   
+    private HashMap<String, String> countryNameToCountryID = new HashMap<String, String>();   
     private HashMap<String, HashMap<String, Integer>> countryDistance= new HashMap<String, HashMap<String, Integer>>();
     private HashMap<String, Integer> countriesDistance = new HashMap<String, Integer>();
     private HashMap<String, String> cases = new HashMap<String, String>();
-   //  Graph graphOfCountries = new Graph(country);
 
     public IRoadTrip(String[] args) {
         if (args.length == 3) {
             generateSpecialCases();
-        try (BufferedReader reader = new BufferedReader(new FileReader("capdist.csv"))) {
-            String line;
-            int skipFirstLine = 0;
-            while ((line = reader.readLine()) != null) {
-                if (skipFirstLine == 0) {
-                    skipFirstLine++;
-                    continue;
+            try (BufferedReader reader = new BufferedReader(new FileReader("capdist.csv"))) {
+                String line;
+                int skipFirstLine = 0;
+                while ((line = reader.readLine()) != null) { //skips the first line of the csv file (numa,ida,numb,idb,kmdist,midist)
+                    if (skipFirstLine == 0) {
+                        skipFirstLine++;
+                        continue;
+                    }
+                    String[] parts = line.split(","); //split by commas
+                    String country1 = parts[1].trim(); // gets first country
+                    String country2 = parts[3].trim(); // gets second country
+                    Integer distance = Integer.parseInt(parts[4].trim()); // gets distance between countries
+                    
+                    if (!countryDistance.containsKey(country1)) { // if country1 is not in the hashmap, add it
+                        countriesDistance = new HashMap<String, Integer>();
+                        countryDistance.put(country1, countriesDistance);
+                    } else { // if country1 is in the hashmap, get the hashmap of country1
+                        countriesDistance = countryDistance.get(country1);
+                    }
+                    
+                    countriesDistance.put(country2, distance); // add country2 and distance to the hashmap of country1
                 }
-                String[] parts = line.split(",");
-                String country1 = parts[1].trim();
-                String country2 = parts[3].trim();
-                Integer distance = Integer.parseInt(parts[4].trim());
-                
-                if (!countryDistance.containsKey(country1)) {
-                    countriesDistance = new HashMap<String, Integer>();
-                    countryDistance.put(country1, countriesDistance);
-                } else {
-                    countriesDistance = countryDistance.get(country1);
-                }
-                
-                countriesDistance.put(country2, distance);
-            }
-            // System.out.println("WSM: " + countryDistance.get("WSM"));
-            // System.out.println("Chinas: " + countryDistance.get("CHN"));
-        //    System.out.println(countryDistance);
             } catch (IOException e) {
-                    e.printStackTrace();
-        }
-        try (BufferedReader reader = new BufferedReader(new FileReader("state_name.tsv"))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {   
-                     //this.countryIDToCountryName = new HashMap<String, String>();
-                        Pattern pattern = Pattern.compile("\\b[\\S ]+\\b");
-                        Matcher matcher = pattern.matcher(line);
-
-                        if(matcher.find()){
-                        String keyValue = findKey(matcher, 2);
-                        String key = findKey(matcher, 2);
-                            countryIDToCountryName.put(key, keyValue);         //Country ID to Country Name
-                           
-                        }
-                    }
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-        try (BufferedReader reader = new BufferedReader(new FileReader("borders.txt"))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split("=|;");
-                String country1 = parts[0].trim(); // gets first country
-                if(cases.containsKey(country1)){
-                     country1 = cases.get(country1);
-                 }
-                HashMap<String, Integer> borderCountryList = new HashMap<String, Integer>(); // create a new HashMap for each country1
-
-                for (int i = 1; i < parts.length; i++) {
-                    String[] stripBorders = parts[i].trim().split("\\s+\\d[\\d,]*\\s+km");
-                    String borderingCountry = stripBorders[0].trim();
-                    if(cases.containsKey(borderingCountry)){
-                        borderingCountry = cases.get(borderingCountry);
-                    } 
-                     if (borderingCountry != null) {
-                        int length = getDistance(country1, borderingCountry);
-                        if(length == -1){
-                            continue;
-                        }
-                        borderCountryList.put(borderingCountry, getDistance(country1, borderingCountry));
-                    }
-                }
-
-                country.put(country1, borderCountryList);
-               System.out.println(country1 + " " + borderCountryList);
-               // System.out.println(cases);
-            
+                        e.printStackTrace();
             }
-            //System.out.println(country);
-        } catch (IOException e) {
+            try (BufferedReader reader = new BufferedReader(new FileReader("state_name.tsv"))) {
+                        String line; 
+                        while ((line = reader.readLine()) != null) {    //Reads the file line by line
+                            Pattern pattern = Pattern.compile("\\b[\\S ]+\\b"); 
+                            Matcher matcher = pattern.matcher(line);
+
+                            if(matcher.find()){ 
+                            String keyValue = findKey(matcher, 2); //Country ID
+                            String key = findKey(matcher, 2); //Country Name
+                                countryNameToCountryID.put(key, keyValue);         //Country ID to Country Name
+                            
+                            }
+                        }
+            } catch (IOException e) {
             e.printStackTrace();
+            }
+            try (BufferedReader reader = new BufferedReader(new FileReader("borders.txt"))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split("=|;");
+                    String country1 = parts[0].trim(); // gets first country
+                    if(cases.containsKey(country1)){ // if country1 is in the cases hashmap, get the country1 value
+                        country1 = cases.get(country1);
+                    }
+                    HashMap<String, Integer> borderCountryList = new HashMap<String, Integer>(); // create a new HashMap for each country1
+
+                    for (int i = 1; i < parts.length; i++) { // loop through the line being read
+                        String[] stripBorders = parts[i].trim().split("\\s+\\d[\\d,]*\\s+km");
+                        String borderingCountry = stripBorders[0].trim(); // gets the bordering country
+                        if(cases.containsKey(borderingCountry)){ // if borderingCountry is in the cases hashmap, get the borderingCountry value
+                            borderingCountry = cases.get(borderingCountry);
+                        } 
+                        if (borderingCountry != null) { // if borderingCountry is not null, add it to the hashmap of country1
+                            int length = getDistance(country1, borderingCountry);
+                            if(length == -1){ // if the distance between country1 and borderingCountry is -1, leave in null space & just put the bordering country into the hashmap
+                                continue;
+                            }
+                            borderCountryList.put(borderingCountry, getDistance(country1, borderingCountry)); // add borderingCountry and distance to the hashmap of country1
+                        }
+                    }
+
+                    country.put(country1, borderCountryList); // add country1 and its hashmap to the country hashmap
+                System.out.println(country1 + " " + borderCountryList); // shows all countries and their borders
+
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-    }
     }
 
     private void generateSpecialCases(){
@@ -160,6 +148,9 @@ public class IRoadTrip {
         cases.put("Morocco (Cueta)", "Morocco");
         cases.put("Spain 1.2 km", "Spain");
         cases.put("Italy", "Italy/Sardinia"); 
+        cases.put("Russia (Kaliningrad)", "Russia (Soviet Union");
+        cases.put("Russia", "Russia (Soviet Union");
+        cases.put("Burkina Faso", "Burkina Faso (Upper Volta");
     }
     
     private static String findKey(Matcher matcher, int position) {
@@ -173,8 +164,8 @@ public class IRoadTrip {
     }
 
     public int getDistance(String country1, String country2) {
-        String country1ID = countryIDToCountryName.get(country1);
-        String country2ID = countryIDToCountryName.get(country2);
+        String country1ID = countryNameToCountryID.get(country1);
+        String country2ID = countryNameToCountryID.get(country2);
         
         if (country1ID != null && country2ID != null) {
             HashMap<String, Integer> country1Distances = countryDistance.get(country1ID);
@@ -187,10 +178,8 @@ public class IRoadTrip {
                 }
             }
         }
-        
         return -1;
     }
-
 
     public List<String> findPath (String country1, String country2) {
         Set<String> visited = new HashSet<>();
@@ -202,7 +191,6 @@ public class IRoadTrip {
             distances.put(node, Integer.MAX_VALUE);
         }
     
-
         distances.put(country1, 0);
         minHeap.add(new Node(country1, 0));
         List<String> visitedNodes = new ArrayList<>();
@@ -250,13 +238,12 @@ public class IRoadTrip {
             currentCountry = prevCountry;
         }
         Collections.reverse(visitedNodes);
-    
+
         return visitedNodes;
     }
 
     public void acceptUserInput() {
         try {
-          //  Graph graphOfCountries = new Graph(country);
             // Get user input for start and end countries
             try (Scanner scanner = new Scanner(System.in)) {
             generateSpecialCases();
@@ -275,10 +262,10 @@ public class IRoadTrip {
 
                 System.out.print("Enter the end country: ");
                 String endCountry = scanner.nextLine().trim();
-                if(cases.containsKey(startCountry)){
-                    endCountry = cases.get(startCountry);
+                if(cases.containsKey(endCountry)){
+                    endCountry = cases.get(endCountry);
                 }
-                if (!country.containsKey(startCountry)){
+                if (!country.containsKey(endCountry)){
                     System.out.println("Invalid country name. Please enter a valid country name.");
                     continue;
                 }
@@ -286,7 +273,6 @@ public class IRoadTrip {
                     System.out.println("No path found.");
                     continue;
                 }
-                //List<String> shortestPath = graphOfCountries.dijkstra(country, startCountry, endCountry);
         
                 // Display the result
                 System.out.println("Shortest path from " + startCountry + " to " + endCountry + " is " + findPath(startCountry, endCountry));
@@ -299,7 +285,6 @@ public class IRoadTrip {
         }
     }
 
-
     public static void main(String[] args) {
         IRoadTrip a3 = new IRoadTrip(args);
         a3.acceptUserInput();
@@ -308,7 +293,6 @@ public class IRoadTrip {
     public HashMap<String, HashMap<String, Integer>> getCountry() {
         return country;
     }
-
 
 public class Node implements Comparable<Node> {
     String node;
@@ -324,6 +308,5 @@ public class Node implements Comparable<Node> {
         return Integer.compare(this.distance, other.distance);
     }
 }
-
 
 }
