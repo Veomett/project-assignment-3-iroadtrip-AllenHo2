@@ -6,12 +6,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Scanner;
+import java.util.Set;
 import java.io.IOException; 
-import java.util.regex.Pattern; 
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import java.util.regex.Matcher; 
 
 /**
@@ -25,7 +29,7 @@ public class IRoadTrip {
     private HashMap<String, HashMap<String, Integer>> countryDistance= new HashMap<String, HashMap<String, Integer>>();
     private HashMap<String, Integer> countriesDistance = new HashMap<String, Integer>();
     private HashMap<String, String> cases = new HashMap<String, String>();
-    Graph graphOfCountries = new Graph(country);
+   //  Graph graphOfCountries = new Graph(country);
 
     public IRoadTrip(String[] args) {
         if (args.length == 0) {
@@ -66,8 +70,8 @@ public class IRoadTrip {
                         Matcher matcher = pattern.matcher(line);
 
                         if(matcher.find()){
-                        String keyValue = getKey(matcher, 2);
-                        String key = getKey(matcher, 2);
+                        String keyValue = findKey(matcher, 2);
+                        String key = findKey(matcher, 2);
                             countryIDToCountryName.put(key, keyValue);         //Country ID to Country Name
                             // System.out.println("KeyGen: " + key);
                             // System.out.println("Value: " + countryIDToCountryName.get(key));
@@ -136,7 +140,7 @@ public class IRoadTrip {
         cases.put("Russia", "Russia (Soviet Union)");
         cases.put("The Slovak Republic", "Slovakia");
         cases.put("Zimbabwe", "Zimbabwe (Rhodesia");
-        cases.put("Iran", "Iran (Persia)");
+        cases.put("Iran", "Iran (Persia");
         cases.put("Botswana 0.15 km", "Botswana");
         cases.put("Zambia 0.15 km", "Zambia");
         cases.put("Denmark (Greenland) 1.3 km", "Denmark");
@@ -151,9 +155,12 @@ public class IRoadTrip {
         cases.put("The Solomon Islands", "Solomon Islands");
         cases.put("UK", "United Kingdom");
         cases.put("Germany", "German Federal Republic");
+        cases.put("Spain (Ceuta)", "Spain");
+        cases.put("Morocco (Cueta)", "Morocco");
+        cases.put("Spain 1.2 km", "Spain");
     }
     
-    private static String getKey(Matcher matcher, int position) {
+    private static String findKey(Matcher matcher, int position) {
         // Move to the desired token position
         for (int i = 1; i < position; i++) {
             if (!matcher.find()) {
@@ -185,48 +192,123 @@ public class IRoadTrip {
 
 
     public List<String> findPath (String country1, String country2) {
-        Map<String, Integer> distancesFromStart = new HashMap<>();
-        Map<String, String> previous = new HashMap<>();
-        PriorityQueue<String> queue = new PriorityQueue<>(Comparator.comparingInt(distancesFromStart::get));
-
-        // Initialize distances and queue
-        for (String country : country.keySet()) {
-            distancesFromStart.put(country, country.equals(country1) ? 0 : Integer.MAX_VALUE);
-            previous.put(country, null);
-            queue.add(country);
+        Set<String> visited = new HashSet<>();
+        PriorityQueue<Node> minHeap = new PriorityQueue<>();
+        HashMap<String, Integer> distances = new HashMap<>();
+        HashMap<String, String> previous = new HashMap<>();
+ 
+                // Find the smallest weight in the graph
+        int smallestWeight = Integer.MAX_VALUE;
+        for (Map<String, Integer> edges : country.values()) {
+            for (int weight : edges.values()) {
+                smallestWeight = Math.min(smallestWeight, weight);
+            }
         }
 
-        while (!queue.isEmpty()) {
-            String current = queue.poll();
+        // If the smallest weight is less than 0, adjust all weights
+        if (smallestWeight < 0) {
+            smallestWeight = Integer.MAX_VALUE;
+        }
+
+        for (String node : country.keySet()) {
+            distances.put(node, Integer.MAX_VALUE);
+        }
+    
+
+        distances.put(country1, 0);
+        minHeap.add(new Node(country1, 0));
+        List<String> visitedNodes = new ArrayList<>();
+    
+        // Process nodes in the priority queue
+        while (!minHeap.isEmpty()) {
+            Node currentNode = minHeap.poll();
+            String current = currentNode.node;
+    
+            if (!visited.contains(current)) {
+                visited.add(current);
+            }
+            // if (visited.contains(current)) {
+            //     continue;
+            // }
+    
+    
+            if (country.containsKey(current)) {
+                for (Map.Entry<String, Integer> neighbor : country.get(current).entrySet()) {
+                    String adjacentCountry = neighbor.getKey();
+                    int weight = neighbor.getValue();
+                    int newDistance = distances.get(current) + weight;
+    
+                    if (newDistance < distances.getOrDefault(adjacentCountry, Integer.MAX_VALUE)) {
+                        distances.put(adjacentCountry, newDistance);
+                        minHeap.add(new Node(adjacentCountry, newDistance));
+                        previous.put(adjacentCountry, current);
+                    }
+                }
+            }
             if (current.equals(country2)) {
-                // Found the shortest path to the destination
-                List<String> path = new ArrayList<>();
-                while (previous.get(current) != null) {
-                    path.add(current);
-                    current = previous.get(current);
-                }
-                Collections.reverse(path);
-                return path;
-            }
-
-            for (String neighbor : country.get(current).keySet()) {
-                int newDistance = distancesFromStart.get(current) + country.get(current).get(neighbor);
-                if (newDistance < distancesFromStart.get(neighbor)) {
-                    distancesFromStart.put(neighbor, newDistance);
-                    previous.put(neighbor, current);
-                    // Reorder the priority queue to reflect the updated distances
-                    queue.remove(neighbor);
-                    queue.add(neighbor);
-                }
+                break;
             }
         }
-
-        return Collections.emptyList();  // No path found
+    
+        if (!previous.containsKey(country2)) {
+            // No path found between the countries
+            return visitedNodes;
+        }
+    
+        String currentCountry = country2;
+        while (!currentCountry.equals(country1)) {
+            String prevCountry = previous.get(currentCountry);
+            int distance = distances.get(currentCountry) - distances.get(prevCountry);
+            visitedNodes.add(prevCountry + " --> " + currentCountry + " (" + distance + " km.)");
+            currentCountry = prevCountry;
+        }
+        Collections.reverse(visitedNodes);
+    
+        return visitedNodes;
     }
+        // Map<String, Integer> distancesFromStart = new HashMap<>();
+        // Map<String, String> previous = new HashMap<>();
+        // PriorityQueue<String> queue = new PriorityQueue<>(Comparator.comparingInt(distancesFromStart::get));
+
+        // // Initialize distances and queue
+        // for (String country : country.keySet()) {
+        //     distancesFromStart.put(country, country.equals(country1) ? 0 : Integer.MAX_VALUE);
+        //     previous.put(country, null);
+        //     queue.add(country);
+        // }
+
+        // while (!queue.isEmpty()) {
+        //     String current = queue.poll();
+        //     if (current.equals(country2)) {
+        //         // Found the shortest path to the destination
+        //         List<String> path = new ArrayList<>();
+        //         while (previous.get(current) != null) {
+        //             path.add(current);
+        //             current = previous.get(current);
+        //         }
+        //         Collections.reverse(path);
+        //         return path;
+        //     }
+
+        //     for (String neighbor : country.get(current).keySet()) {
+        //         int newDistance = distancesFromStart.get(current) + country.get(current).get(neighbor);
+        //         if (newDistance < distancesFromStart.get(neighbor)) {
+        //             distancesFromStart.put(neighbor, newDistance);
+        //             previous.put(neighbor, current);
+        //             // Reorder the priority queue to reflect the updated distances
+        //             queue.remove(neighbor);
+        //             queue.add(neighbor);
+        //         }
+        //     }
+        // }
+
+        // return Collections.emptyList();  // No path found
+    
 
 
     public void acceptUserInput() {
         try {
+          //  Graph graphOfCountries = new Graph(country);
             // Get user input for start and end countries
             try (Scanner scanner = new Scanner(System.in)) {
                 System.out.print("Enter the start country: ");
@@ -234,9 +316,10 @@ public class IRoadTrip {
 
                 System.out.print("Enter the end country: ");
                 String endCountry = scanner.nextLine().trim();
+                //List<String> shortestPath = graphOfCountries.dijkstra(country, startCountry, endCountry);
         
                 // Display the result
-                System.out.println("Shortest path from " + startCountry + " to " + endCountry + ": " + findPath(startCountry, endCountry) + " distance is ");
+                System.out.println("Shortest path from " + startCountry + " to " + endCountry + " is " + findPath(startCountry, endCountry));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -256,27 +339,101 @@ public class IRoadTrip {
     }
 
 
-    static class CountryDistancePair implements Comparable<CountryDistancePair> {
-        private String country;
-        private int distance;
+    // static class CountryDistancePair implements Comparable<CountryDistancePair> {
+    //     private String country;
+    //     private int distance;
 
-        public CountryDistancePair(String country, int distance) {
-            this.country = country;
-            this.distance = distance;
-        }
+    //     public CountryDistancePair(String country, int distance) {
+    //         this.country = country;
+    //         this.distance = distance;
+    //     }
 
-        public String getCountry() {
-            return country;
-        }
+    //     public String getCountry() {
+    //         return country;
+    //     }
 
-        public int getDistance() {
-            return distance;
-        }
+    //     public int getDistance() {
+    //         return distance;
+    //     }
 
-        @Override
-        public int compareTo(CountryDistancePair other) {
-            return Integer.compare(this.distance, other.distance);
-        }
-    }
+    //     @Override
+    //     public int compareTo(CountryDistancePair other) {
+    //         return Integer.compare(this.distance, other.distance);
+    //     }
+    // }
+    // public void dijkstra (Node source){
+    //     source.setDistance(0);
+    //     Set<Node> settledNodes = new HashSet<>();
+    //     PriorityQueue<Node> unsettledNodes = new PriorityQueue<>();
+    //     while (!unsettledNodes.isEmpty()) {
+    //         Node currentNode = unsettledNodes.poll();
+    //         currentNode.getAdjacentNodes()
+    //                 .entrySet()
+    //                 .stream()
+    //                 .filter(entry -> !settledNodes.contains(entry.getKey()))
+    //                 .forEach(entry -> {
+    //                     evaluateDistanceAndPath(entry.getKey(), entry.getValue(), currentNode);
+    //                     unsettledNodes.add(entry.getKey());
+    //                 });
+    //         settledNodes.add(currentNode);
+    //     }
+    // }
+
+    // public void evaluateDistanceAndPath(Node adjacentNodes, Integer distance, Node currentNode){
+    //     Integer newDistance = currentNode.getDistance() + distance;
+    //     if(newDistance + distance < adjacentNodes.getDistance()){
+    //         adjacentNodes.setDistance(newDistance);
+    //         adjacentNodes.setShortestPath(
+    //             Stream.concat(currentNode.getShortestPath().stream(), Stream.of(currentNode)).toList());
+    //     }
+    // }
+    // public class Node implements Comparable<Node> {
+    //     private final String name;
+    //     private Integer distance = Integer.MAX_VALUE;
+    //     private List<Node> shortestPath = new LinkedList<>();
+    //     private Map<Node, Integer> adjacentNodes = new HashMap<>();
+
+    //     public void addAdjacentNode(Node destination, int distance) {
+    //         adjacentNodes.put(destination, distance);
+    //     }
+    //    // int distance;
+
+    //     Node(String name, int distance) {
+    //         this.name = name;
+    //     }
+
+    //     @Override
+    //     public int compareTo(Node other) {
+    //         return Integer.compare(this.distance, other.distance);
+    //     }
+
+    //     public String getName() {
+    //         return name;
+    //     }
+
+    //     public Integer getDistance() {
+    //         return distance;
+    //     }
+
+    //     public List<Node> getShortestPath() {
+    //         return shortestPath;
+    //     }
+
+    //     public Map<Node, Integer> getAdjacentNodes() {
+    //         return adjacentNodes;
+    //     }
+
+    //     public void setDistance(Integer distance) {
+    //         this.distance = distance;
+    //     }
+
+    //     public void setShortestPath(List<Node> shortestPath) {
+    //         this.shortestPath = shortestPath;
+    //     }
+
+    //     public void setAdjacentNodes(Map<Node, Integer> adjacentNodes) {
+    //         this.adjacentNodes = adjacentNodes;
+    //     }
+    // }
 }
 
