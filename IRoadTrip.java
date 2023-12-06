@@ -207,7 +207,12 @@ public class IRoadTrip {
 
         // If the smallest weight is less than 0, adjust all weights
         if (smallestWeight < 0) {
-            smallestWeight = Integer.MAX_VALUE;
+            int adjustment = Math.abs(smallestWeight) + 1;
+            for (Map<String, Integer> edges : country.values()) {
+                for (Map.Entry<String, Integer> entry : edges.entrySet()) {
+                    entry.setValue(entry.getValue() + adjustment);
+                }
+            }
         }
 
         for (String node : country.keySet()) {
@@ -226,11 +231,9 @@ public class IRoadTrip {
     
             if (!visited.contains(current)) {
                 visited.add(current);
+            } else {
+                continue;
             }
-            // if (visited.contains(current)) {
-            //     continue;
-            // }
-    
     
             if (country.containsKey(current)) {
                 for (Map.Entry<String, Integer> neighbor : country.get(current).entrySet()) {
@@ -249,12 +252,6 @@ public class IRoadTrip {
                 break;
             }
         }
-    
-        if (!previous.containsKey(country2)) {
-            // No path found between the countries
-            return visitedNodes;
-        }
-    
         String currentCountry = country2;
         while (!currentCountry.equals(country1)) {
             String prevCountry = previous.get(currentCountry);
@@ -311,15 +308,34 @@ public class IRoadTrip {
           //  Graph graphOfCountries = new Graph(country);
             // Get user input for start and end countries
             try (Scanner scanner = new Scanner(System.in)) {
+            generateSpecialCases();
+                while(true){
                 System.out.print("Enter the start country: ");
                 String startCountry = scanner.nextLine().trim();
+                if(cases.containsKey(startCountry)){
+                    startCountry = cases.get(startCountry);
+                }
+                if(startCountry.equals("EXIT")){
+                    break;
+                } else if (!country.containsKey(startCountry)){
+                    System.out.println("Invalid country name. Please enter a valid country name.");
+                    continue;
+                }
 
                 System.out.print("Enter the end country: ");
                 String endCountry = scanner.nextLine().trim();
+                if(cases.containsKey(startCountry)){
+                    endCountry = cases.get(startCountry);
+                }
+                if (!country.containsKey(startCountry)){
+                    System.out.println("Invalid country name. Please enter a valid country name.");
+                    continue;
+                }
                 //List<String> shortestPath = graphOfCountries.dijkstra(country, startCountry, endCountry);
         
                 // Display the result
                 System.out.println("Shortest path from " + startCountry + " to " + endCountry + " is " + findPath(startCountry, endCountry));
+            }
             } catch (Exception e) {
                 e.printStackTrace();
             }
