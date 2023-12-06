@@ -32,7 +32,7 @@ public class IRoadTrip {
    //  Graph graphOfCountries = new Graph(country);
 
     public IRoadTrip(String[] args) {
-        if (args.length == 0) {
+        if (args.length != 3) {
             generateSpecialCases();
         try (BufferedReader reader = new BufferedReader(new FileReader("capdist.csv"))) {
             String line;
@@ -228,7 +228,11 @@ public class IRoadTrip {
         while (!minHeap.isEmpty()) {
             Node currentNode = minHeap.poll();
             String current = currentNode.node;
-    
+
+            if(distances.get(current) == 1){
+                continue;
+            }
+
             if (!visited.contains(current)) {
                 visited.add(current);
             } else {
@@ -255,6 +259,9 @@ public class IRoadTrip {
         String currentCountry = country2;
         while (!currentCountry.equals(country1)) {
             String prevCountry = previous.get(currentCountry);
+            if(distances.get(currentCountry) == null || distances.get(prevCountry) == null){
+                return null;
+            }
             int distance = distances.get(currentCountry) - distances.get(prevCountry);
             visitedNodes.add(prevCountry + " --> " + currentCountry + " (" + distance + " km.)");
             currentCountry = prevCountry;
@@ -329,6 +336,10 @@ public class IRoadTrip {
                 }
                 if (!country.containsKey(startCountry)){
                     System.out.println("Invalid country name. Please enter a valid country name.");
+                    continue;
+                }
+                if(findPath(startCountry, endCountry) == null){
+                    System.out.println("No path found.");
                     continue;
                 }
                 //List<String> shortestPath = graphOfCountries.dijkstra(country, startCountry, endCountry);
