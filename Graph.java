@@ -5,24 +5,26 @@ import java.io.FileReader;
 import java.io.IOException; // Add this import statement
 import java.sql.Array;
 import java.util.*;
-
 import static java.lang.Integer.MAX_VALUE;
 public class Graph {    
-    private HashMap<String, HashMap<String, Integer>> countries;  // Hashmap for countries/nodes
-    private HashMap<String, HashMap<String, Integer>> distances;  // Hashmap for distances between countries
-    private HashMap<String, HashMap<String, Integer>> borders;  
+    private HashMap<String, HashMap<String, Integer>> country;  // Hashmap for country/nodes
 
-    public Graph(HashMap<String, HashMap<String, Integer>> countries, HashMap<String, HashMap<String, Integer>> distances, HashMap<String, String> countryIDToCountryName) {
-        this.countries = new HashMap<>();
-        this.distances = new HashMap<>();
-        this.borders = new HashMap<>();
+
+    public Graph(HashMap<String, HashMap<String, Integer>> country) {
+        this.country = new HashMap<>();
+    }
+
+    public void addEdge(String country1, String country2, int distance) {
+        Edge edge = new Edge(country1, country2, distance);
+        // Add the edge to your data structure or perform any other necessary operations
     }
 
 
-    public void loadData(HashMap<String, HashMap<String, Integer>> countryData) {
-        for (Map.Entry<String, HashMap<String, Integer>> entry : countryData.entrySet()) {
-            String country = entry.getKey();
-            addCountry(country);
+
+    public void loadData(HashMap<String, HashMap<String, Integer>> country) {
+        for (Map.Entry<String, HashMap<String, Integer>> entry : country.entrySet()) {
+            String countryKey = entry.getKey();
+            addCountry(countryKey);
 
             for (Map.Entry<String, Integer> neighborEntry : entry.getValue().entrySet()) {
                 String neighbor = neighborEntry.getKey();
@@ -30,21 +32,19 @@ public class Graph {
                 addCountry(neighbor);
 
                 // Add edge with distance
-                distances.get(country).put(neighbor, distance);
-                distances.get(neighbor).put(country, distance);
+                country.get(countryKey).put(neighbor, distance);
+                country.get(neighbor).put(countryKey, distance);
 
                 // Add the neighboring country
-                borders.get(country).put(neighbor, 0);
-                borders.get(neighbor).put(country, 0);
+                country.get(countryKey).put(neighbor, 0);
+                country.get(neighbor).put(countryKey, 0);
             }
         }
     }
 
-    public void addCountry(String country) {
-        if (!countries.containsKey(country)) {
-            countries.put(country, new HashMap<>());
-            distances.put(country, new HashMap<>());
-            borders.put(country, new HashMap<>());
+    public void addCountry(String countryKey) {
+        if (!country.containsKey(countryKey)) {
+            country.put(countryKey, new HashMap<>());
         }
     }
     public void addDistance(String country1, String country2, int distance) {
@@ -52,17 +52,17 @@ public class Graph {
         addCountry(country2);
 
         // Add edge with distance
-        distances.get(country1).put(country2, distance);
-        distances.get(country2).put(country1, distance);
+        country.get(country1).put(country2, distance);
+        country.get(country2).put(country1, distance);
     }
 
-    public void addBorder(String country, String neighbor) {
-        addCountry(country);
+    public void addBorder(String countryKey, String neighbor) {
+        addCountry(countryKey);
         addCountry(neighbor);
 
         // Add the neighboring country
-        borders.get(country).put(neighbor, 0);
-        borders.get(neighbor).put(country, 0);
+        country.get(countryKey).put(neighbor, 0);
+        country.get(neighbor).put(countryKey, 0);
     }
 
     public List<String> dijkstra(String start, String end) {
@@ -71,7 +71,7 @@ public class Graph {
         PriorityQueue<String> queue = new PriorityQueue<>(Comparator.comparingInt(distancesFromStart::get));
 
         // Initialize distances and queue
-        for (String country : countries.keySet()) {
+        for (String country : country.keySet()) {
             distancesFromStart.put(country, country.equals(start) ? 0 : Integer.MAX_VALUE);
             previous.put(country, null);
             queue.add(country);
@@ -90,8 +90,8 @@ public class Graph {
                 return path;
             }
 
-            for (String neighbor : distances.get(current).keySet()) {
-                int newDistance = distancesFromStart.get(current) + distances.get(current).get(neighbor);
+            for (String neighbor : country.get(current).keySet()) {
+                int newDistance = distancesFromStart.get(current) + country.get(current).get(neighbor);
                 if (newDistance < distancesFromStart.get(neighbor)) {
                     distancesFromStart.put(neighbor, newDistance);
                     previous.put(neighbor, current);
@@ -105,42 +105,39 @@ public class Graph {
         return Collections.emptyList();  // No path found
     }
 
-    public Map<String, HashMap<String, Integer>> getCountries() {
-        return countries;
+    public Map<String, HashMap<String, Integer>> setCountry(HashMap<String, HashMap<String, Integer>> country) {
+        return this.country = country;
     }
-
-    public HashMap<String, HashMap<String, Integer>> getDistances() {
-        return distances;
-    }
-
-    public Map<String, HashMap<String, Integer>> getBorders() {
-        return borders;
-    }
-    
-    public Map<String, HashMap<String, Integer>> setCountries(HashMap<String, HashMap<String, Integer>> countries) {
-        return this.countries = countries;
-    }
-    public Map<String, HashMap<String, Integer>> setDistances(HashMap<String, HashMap<String, Integer>> distances) {
-        return this.distances = distances;
-    }
-    public Map<String, HashMap<String, Integer>> setBorders(HashMap<String, HashMap<String, Integer>> borders) {
-        return this.borders = borders;
-    }
-
-    // public void displayGraph() {
-    //     for (String country : countries.keySet()) {
-    //         System.out.println("Country " + country + ":");
-    //         System.out.println("  Neighboring countries:");
-    //         for (String neighbor : borders.get(country).keySet()) {
-    //             System.out.println("    " + neighbor);
-    //         }
-    //         System.out.println("  Distances to other countries:");
-    //         for (Map.Entry<String, Integer> entry : distances.get(country).entrySet()) {
-    //             System.out.println("    " + entry.getKey() + " (Distance: " + entry.getValue() + " km)");
-    //         }
-    //         System.out.println();
-    //     }
-    // }
 }
 
+public class Node implements Comparable<Node> {
+        String name;
+        int distance;
 
+        Node(String name, int distance) {
+            this.name = name;
+        }
+
+        @Override
+        public int compareTo(Node other) {
+            return Integer.compare(this.distance, other.distance);
+        }
+    }
+    public class Edge implements Comparable<Edge>{
+        String source;
+        String dest;
+        int weight;
+        Edge(){
+            source = null;
+            dest = null;
+            weight = 0;
+        }
+        Edge(String v1, String v2, int w){
+            source = v1;
+            dest = v2;
+            weight = w;
+        }
+        public int compareTo(Edge e){// needed for Kruskal's algorithm
+            return this.weight - e.weight;
+        }
+    }

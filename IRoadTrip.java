@@ -26,7 +26,7 @@ public class IRoadTrip {
     //private HashMap<String, HashMap<String, Integer>> countryToCountryDistance = new HashMap<String, HashMap<String, Integer>>();
  //   private HashMap<String,String> specialCases = new HashMap<String,String>();
     //private int distance;
-    Graph graphOfCountries = new Graph(country, countryDistance, countryIDToCountryName);
+    Graph graphOfCountries = new Graph(country);
 
     public IRoadTrip(String[] args) {
         // Replace with your code
@@ -105,10 +105,11 @@ public class IRoadTrip {
                 }
 
                 country.put(country1, borderCountryList);
-                System.out.println(country1 + " " + borderCountryList);
+               System.out.println(country1 + " " + borderCountryList);
                // System.out.println(cases);
             
             }
+            //System.out.println(country);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -142,13 +143,18 @@ public class IRoadTrip {
         cases.put("Zimbabwe", "Zimbabwe (Rhodesia");
         cases.put("Iran", "Iran (Persia)");
         cases.put("Botswana 0.15 km", "Botswana");
+        cases.put("Zambia 0.15 km", "Zambia");
+        cases.put("Denmark (Greenland) 1.3 km", "Denmark");
+        cases.put("Canada 1.3 km", "Canada");
+        cases.put("Gibraltar 1.2 km", "Gibraltar");
+        cases.put("Holy See (Vatican City) 3.4 km", "Holy See (Vatican City)");
+        cases.put("Denmark (Greenland)", "Denmark");
         cases.put("Yemen", "Yemen (Arab Republic of Yemen");
         cases.put("Cambodia", "Cambodia (Kampuchea");
         cases.put("Tanzania", "Tanzania/Tanganyika");
         cases.put("Vietnam", "Vietnam, Democratic Republic of");
         cases.put("The Solomon Islands", "Solomon Islands");
-        cases.put("UK", "United Kingdom");
-        cases.put("The Vatican City", "Holy See (Vatican City)");
+       // cases.put("UK", "United Kingdom");
         cases.put("Germany", "German Federal Republic");
     }
     
@@ -201,7 +207,7 @@ public class IRoadTrip {
            // g.setCountries(country, );
             // Example: Check if USA has a border with Canada
            // graphOfCountries.addBorder("USA", "Canada");
-           graphOfCountries = new Graph(country, countryDistance, countryIDToCountryName);
+           graphOfCountries = new Graph(country);
            graphOfCountries.loadData(country);
             //xgraphOfCountries.addBorder("USA", "Mexico");
 
@@ -243,13 +249,13 @@ public class IRoadTrip {
         return country;
     }
 
-    public HashMap<String, String> getCountryIDToCountryName() {
-        return countryIDToCountryName;
-    }
+    // public HashMap<String, String> getCountryIDToCountryName() {
+    //     return countryIDToCountryName;
+    // }
 
-    public HashMap<String, HashMap<String, Integer>> getCountryDistance() {
-        return countryDistance;
-    }
+    // public HashMap<String, HashMap<String, Integer>> getCountryDistance() {
+    //     return countryDistance;
+    // }
 
     // public HashMap<String, HashMap<String, Integer>> getCountryToCountryDistance() {
     //     return countryToCountryDistance;
