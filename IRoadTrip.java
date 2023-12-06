@@ -3,9 +3,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Scanner;
 import java.io.IOException; 
 import java.util.regex.Pattern; 
@@ -18,18 +21,13 @@ import java.util.regex.Matcher;
 public class IRoadTrip {
 
     private HashMap<String, HashMap<String, Integer>> country = new HashMap<String, HashMap<String, Integer>>();
-  //  private HashMap<String, Integer> borderCountryList = new HashMap<String, Integer>();
     private HashMap<String, String> countryIDToCountryName = new HashMap<String, String>();   
     private HashMap<String, HashMap<String, Integer>> countryDistance= new HashMap<String, HashMap<String, Integer>>();
     private HashMap<String, Integer> countriesDistance = new HashMap<String, Integer>();
     private HashMap<String, String> cases = new HashMap<String, String>();
-    //private HashMap<String, HashMap<String, Integer>> countryToCountryDistance = new HashMap<String, HashMap<String, Integer>>();
- //   private HashMap<String,String> specialCases = new HashMap<String,String>();
-    //private int distance;
     Graph graphOfCountries = new Graph(country);
 
     public IRoadTrip(String[] args) {
-        // Replace with your code
         if (args.length == 0) {
             generateSpecialCases();
         try (BufferedReader reader = new BufferedReader(new FileReader("capdist.csv"))) {
@@ -62,8 +60,7 @@ public class IRoadTrip {
         }
         try (BufferedReader reader = new BufferedReader(new FileReader("state_name.tsv"))) {
                     String line;
-                    while ((line = reader.readLine()) != null) {
-                     //   HashMap<String, String> countryIDToCountryName = new HashMap<String, String>();     
+                    while ((line = reader.readLine()) != null) {   
                      //this.countryIDToCountryName = new HashMap<String, String>();
                         Pattern pattern = Pattern.compile("\\b[\\S ]+\\b");
                         Matcher matcher = pattern.matcher(line);
@@ -82,8 +79,6 @@ public class IRoadTrip {
           e.printStackTrace();
         }
         try (BufferedReader reader = new BufferedReader(new FileReader("borders.txt"))) {
-           // HashMap<String, HashMap<String, Integer>> country = new HashMap<String, HashMap<String, Integer>>();
-           //this.country = new HashMap<String, HashMap<String,Integer>>();
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split("=|;");
@@ -154,7 +149,7 @@ public class IRoadTrip {
         cases.put("Tanzania", "Tanzania/Tanganyika");
         cases.put("Vietnam", "Vietnam, Democratic Republic of");
         cases.put("The Solomon Islands", "Solomon Islands");
-       // cases.put("UK", "United Kingdom");
+        cases.put("UK", "United Kingdom");
         cases.put("Germany", "German Federal Republic");
     }
     
@@ -167,9 +162,6 @@ public class IRoadTrip {
         }
         return matcher.group();
     }
-    // public HashMap<String, List<String>> graph() {
-        
-    // }
 
     public int getDistance(String country1, String country2) {
         String country1ID = countryIDToCountryName.get(country1);
@@ -193,28 +185,48 @@ public class IRoadTrip {
 
 
     public List<String> findPath (String country1, String country2) {
-        if(country1 != null && country2 != null){
-        List<String> shortestPath = graphOfCountries.dijkstra(country1, country2);
-        return shortestPath;
+        Map<String, Integer> distancesFromStart = new HashMap<>();
+        Map<String, String> previous = new HashMap<>();
+        PriorityQueue<String> queue = new PriorityQueue<>(Comparator.comparingInt(distancesFromStart::get));
+
+        // Initialize distances and queue
+        for (String country : country.keySet()) {
+            distancesFromStart.put(country, country.equals(country1) ? 0 : Integer.MAX_VALUE);
+            previous.put(country, null);
+            queue.add(country);
         }
-        return null;
+
+        while (!queue.isEmpty()) {
+            String current = queue.poll();
+            if (current.equals(country2)) {
+                // Found the shortest path to the destination
+                List<String> path = new ArrayList<>();
+                while (previous.get(current) != null) {
+                    path.add(current);
+                    current = previous.get(current);
+                }
+                Collections.reverse(path);
+                return path;
+            }
+
+            for (String neighbor : country.get(current).keySet()) {
+                int newDistance = distancesFromStart.get(current) + country.get(current).get(neighbor);
+                if (newDistance < distancesFromStart.get(neighbor)) {
+                    distancesFromStart.put(neighbor, newDistance);
+                    previous.put(neighbor, current);
+                    // Reorder the priority queue to reflect the updated distances
+                    queue.remove(neighbor);
+                    queue.add(neighbor);
+                }
+            }
+        }
+
+        return Collections.emptyList();  // No path found
     }
 
 
     public void acceptUserInput() {
         try {
-          //  Graph g = new Graph();
-           // g.setCountries(country, );
-            // Example: Check if USA has a border with Canada
-           // graphOfCountries.addBorder("USA", "Canada");
-           graphOfCountries = new Graph(country);
-           graphOfCountries.loadData(country);
-            //xgraphOfCountries.addBorder("USA", "Mexico");
-
-            // Example: Read distances information from file or other sources
-         //   graphOfCountries.addDistance("USA", "Canada", countryDistance.get("USA").get("Canada"));
-         //   graphOfCountries.addDistance("USA", "Mexico", 1500);
-
             // Get user input for start and end countries
             try (Scanner scanner = new Scanner(System.in)) {
                 System.out.print("Enter the start country: ");
@@ -222,12 +234,6 @@ public class IRoadTrip {
 
                 System.out.print("Enter the end country: ");
                 String endCountry = scanner.nextLine().trim();
-
-                // if(startCountry.equalsIgnoreCase("EXIT") || endCountry.equalsIgnoreCase("EXIT")){
-                //     scanner.close();
-                //     System.exit(1);
-                // }
-                // Find the shortest path
         
                 // Display the result
                 System.out.println("Shortest path from " + startCountry + " to " + endCountry + ": " + findPath(startCountry, endCountry) + " distance is ");
@@ -249,16 +255,28 @@ public class IRoadTrip {
         return country;
     }
 
-    // public HashMap<String, String> getCountryIDToCountryName() {
-    //     return countryIDToCountryName;
-    // }
 
-    // public HashMap<String, HashMap<String, Integer>> getCountryDistance() {
-    //     return countryDistance;
-    // }
+    static class CountryDistancePair implements Comparable<CountryDistancePair> {
+        private String country;
+        private int distance;
 
-    // public HashMap<String, HashMap<String, Integer>> getCountryToCountryDistance() {
-    //     return countryToCountryDistance;
-    // }
+        public CountryDistancePair(String country, int distance) {
+            this.country = country;
+            this.distance = distance;
+        }
+
+        public String getCountry() {
+            return country;
+        }
+
+        public int getDistance() {
+            return distance;
+        }
+
+        @Override
+        public int compareTo(CountryDistancePair other) {
+            return Integer.compare(this.distance, other.distance);
+        }
+    }
 }
 
