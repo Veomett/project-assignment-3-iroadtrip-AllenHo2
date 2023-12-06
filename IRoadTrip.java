@@ -32,7 +32,7 @@ public class IRoadTrip {
    //  Graph graphOfCountries = new Graph(country);
 
     public IRoadTrip(String[] args) {
-        if (args.length == 0) {
+        if (args.length == 3) {
             generateSpecialCases();
         try (BufferedReader reader = new BufferedReader(new FileReader("capdist.csv"))) {
             String line;
@@ -73,11 +73,8 @@ public class IRoadTrip {
                         String keyValue = findKey(matcher, 2);
                         String key = findKey(matcher, 2);
                             countryIDToCountryName.put(key, keyValue);         //Country ID to Country Name
-                            // System.out.println("KeyGen: " + key);
-                            // System.out.println("Value: " + countryIDToCountryName.get(key));
                            
                         }
-                        // System.out.println("Hashmap of Country ID to Country Name: " + countryIDToCountryName);
                     }
         } catch (IOException e) {
           e.printStackTrace();
@@ -162,6 +159,7 @@ public class IRoadTrip {
         cases.put("Spain (Ceuta)", "Spain");
         cases.put("Morocco (Cueta)", "Morocco");
         cases.put("Spain 1.2 km", "Spain");
+        cases.put("Italy", "Italy/Sardinia"); 
     }
     
     private static String findKey(Matcher matcher, int position) {
@@ -185,7 +183,6 @@ public class IRoadTrip {
                 Integer distance = country1Distances.get(country2ID);
                 
                 if (distance != null) {
-                //    System.out.println("Distance: " + distance);
                     return distance;
                 }
             }
@@ -200,24 +197,6 @@ public class IRoadTrip {
         PriorityQueue<Node> minHeap = new PriorityQueue<>();
         HashMap<String, Integer> distances = new HashMap<>();
         HashMap<String, String> previous = new HashMap<>();
- 
-                // Find the smallest weight in the graph
-        int smallestWeight = Integer.MAX_VALUE;
-        for (Map<String, Integer> edges : country.values()) {
-            for (int weight : edges.values()) {
-                smallestWeight = Math.min(smallestWeight, weight);
-            }
-        }
-
-        // If the smallest weight is less than 0, adjust all weights
-        if (smallestWeight < 0) {
-            int adjustment = Math.abs(smallestWeight) + 1;
-            for (Map<String, Integer> edges : country.values()) {
-                for (Map.Entry<String, Integer> entry : edges.entrySet()) {
-                    entry.setValue(entry.getValue() + adjustment);
-                }
-            }
-        }
 
         for (String node : country.keySet()) {
             distances.put(node, Integer.MAX_VALUE);
@@ -274,45 +253,6 @@ public class IRoadTrip {
     
         return visitedNodes;
     }
-        // Map<String, Integer> distancesFromStart = new HashMap<>();
-        // Map<String, String> previous = new HashMap<>();
-        // PriorityQueue<String> queue = new PriorityQueue<>(Comparator.comparingInt(distancesFromStart::get));
-
-        // // Initialize distances and queue
-        // for (String country : country.keySet()) {
-        //     distancesFromStart.put(country, country.equals(country1) ? 0 : Integer.MAX_VALUE);
-        //     previous.put(country, null);
-        //     queue.add(country);
-        // }
-
-        // while (!queue.isEmpty()) {
-        //     String current = queue.poll();
-        //     if (current.equals(country2)) {
-        //         // Found the shortest path to the destination
-        //         List<String> path = new ArrayList<>();
-        //         while (previous.get(current) != null) {
-        //             path.add(current);
-        //             current = previous.get(current);
-        //         }
-        //         Collections.reverse(path);
-        //         return path;
-        //     }
-
-        //     for (String neighbor : country.get(current).keySet()) {
-        //         int newDistance = distancesFromStart.get(current) + country.get(current).get(neighbor);
-        //         if (newDistance < distancesFromStart.get(neighbor)) {
-        //             distancesFromStart.put(neighbor, newDistance);
-        //             previous.put(neighbor, current);
-        //             // Reorder the priority queue to reflect the updated distances
-        //             queue.remove(neighbor);
-        //             queue.add(neighbor);
-        //         }
-        //     }
-        // }
-
-        // return Collections.emptyList();  // No path found
-    
-
 
     public void acceptUserInput() {
         try {
@@ -370,101 +310,20 @@ public class IRoadTrip {
     }
 
 
-    // static class CountryDistancePair implements Comparable<CountryDistancePair> {
-    //     private String country;
-    //     private int distance;
+public class Node implements Comparable<Node> {
+    String node;
+    int distance;
 
-    //     public CountryDistancePair(String country, int distance) {
-    //         this.country = country;
-    //         this.distance = distance;
-    //     }
+    Node(String node, int distance) {
+        this.node = node;
+        this.distance = distance;
+    }
 
-    //     public String getCountry() {
-    //         return country;
-    //     }
-
-    //     public int getDistance() {
-    //         return distance;
-    //     }
-
-    //     @Override
-    //     public int compareTo(CountryDistancePair other) {
-    //         return Integer.compare(this.distance, other.distance);
-    //     }
-    // }
-    // public void dijkstra (Node source){
-    //     source.setDistance(0);
-    //     Set<Node> settledNodes = new HashSet<>();
-    //     PriorityQueue<Node> unsettledNodes = new PriorityQueue<>();
-    //     while (!unsettledNodes.isEmpty()) {
-    //         Node currentNode = unsettledNodes.poll();
-    //         currentNode.getAdjacentNodes()
-    //                 .entrySet()
-    //                 .stream()
-    //                 .filter(entry -> !settledNodes.contains(entry.getKey()))
-    //                 .forEach(entry -> {
-    //                     evaluateDistanceAndPath(entry.getKey(), entry.getValue(), currentNode);
-    //                     unsettledNodes.add(entry.getKey());
-    //                 });
-    //         settledNodes.add(currentNode);
-    //     }
-    // }
-
-    // public void evaluateDistanceAndPath(Node adjacentNodes, Integer distance, Node currentNode){
-    //     Integer newDistance = currentNode.getDistance() + distance;
-    //     if(newDistance + distance < adjacentNodes.getDistance()){
-    //         adjacentNodes.setDistance(newDistance);
-    //         adjacentNodes.setShortestPath(
-    //             Stream.concat(currentNode.getShortestPath().stream(), Stream.of(currentNode)).toList());
-    //     }
-    // }
-    // public class Node implements Comparable<Node> {
-    //     private final String name;
-    //     private Integer distance = Integer.MAX_VALUE;
-    //     private List<Node> shortestPath = new LinkedList<>();
-    //     private Map<Node, Integer> adjacentNodes = new HashMap<>();
-
-    //     public void addAdjacentNode(Node destination, int distance) {
-    //         adjacentNodes.put(destination, distance);
-    //     }
-    //    // int distance;
-
-    //     Node(String name, int distance) {
-    //         this.name = name;
-    //     }
-
-    //     @Override
-    //     public int compareTo(Node other) {
-    //         return Integer.compare(this.distance, other.distance);
-    //     }
-
-    //     public String getName() {
-    //         return name;
-    //     }
-
-    //     public Integer getDistance() {
-    //         return distance;
-    //     }
-
-    //     public List<Node> getShortestPath() {
-    //         return shortestPath;
-    //     }
-
-    //     public Map<Node, Integer> getAdjacentNodes() {
-    //         return adjacentNodes;
-    //     }
-
-    //     public void setDistance(Integer distance) {
-    //         this.distance = distance;
-    //     }
-
-    //     public void setShortestPath(List<Node> shortestPath) {
-    //         this.shortestPath = shortestPath;
-    //     }
-
-    //     public void setAdjacentNodes(Map<Node, Integer> adjacentNodes) {
-    //         this.adjacentNodes = adjacentNodes;
-    //     }
-    // }
+    @Override
+    public int compareTo(Node other) {
+        return Integer.compare(this.distance, other.distance);
+    }
 }
 
+
+}
