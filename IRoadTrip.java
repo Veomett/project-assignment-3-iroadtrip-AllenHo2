@@ -22,7 +22,7 @@ public class IRoadTrip {
     private HashMap<String, String> cases = new HashMap<String, String>(); //Stores edge cases
 
     public IRoadTrip(String[] args) {
-        if (args.length == 3) { // if there are 3 arguments, read the files
+        if (args.length == 3) { // if there are borders.txt capdist.csv and state_name.tsv, read the files
             generateSpecialCases(); //generate edge cases
             try (BufferedReader reader = new BufferedReader(new FileReader(args[1]))) { // reads the capdist.csv file
                 String line;
@@ -51,7 +51,7 @@ public class IRoadTrip {
             }
             try (BufferedReader reader = new BufferedReader(new FileReader(args[2]))) { //reads the state_name.tsv file
                         String line; 
-                        while ((line = reader.readLine()) != null) {    //Reads the file line by line
+                        while ((line = reader.readLine()) != null) {    //Reads each file line
                             Pattern pattern = Pattern.compile("\\b[\\S ]+\\b"); 
                             Matcher matcher = pattern.matcher(line);
 
@@ -67,9 +67,9 @@ public class IRoadTrip {
             }
             try (BufferedReader reader = new BufferedReader(new FileReader(args[0]))) { // reads the borders.txtfile
                 String line;
-                while ((line = reader.readLine()) != null) { // reads the file line by line
+                while ((line = reader.readLine()) != null) { // reads each file line
                     String[] parts = line.split("=|;");
-                    String country1 = parts[0].trim(); // gets first country
+                    String country1 = parts[0].trim(); // gets the first country
                     if(cases.containsKey(country1)){ // if country1 is in the cases hashmap, get the country1 value
                         country1 = cases.get(country1);
                     }
@@ -83,7 +83,7 @@ public class IRoadTrip {
                         } 
                         if (borderingCountry != null) { // if borderingCountry is not null, add it to the hashmap of country1
                             int length = getDistance(country1, borderingCountry);
-                            if(length == -1){ // if the distance between country1 and borderingCountry is -1, leave in null space & just put the bordering country into the hashmap
+                            if(length == -1){ // if the distance between country1 and borderingCountry is -1, leave in null space & just put the bordering country into the hashmap (no path found)
                                 continue;
                             }
                             borderCountryList.put(borderingCountry, getDistance(country1, borderingCountry)); // add borderingCountry and distance to the hashmap of country1
@@ -153,7 +153,6 @@ public class IRoadTrip {
     }
     
     private static String findKey(Matcher matcher, int position) { //finds Country name to Country ID
-        // Move to the desired token position
         for (int i = 1; i < position; i++) {
             if (!matcher.find()) {
                 return null;
@@ -169,7 +168,7 @@ public class IRoadTrip {
         if (country1ID != null && country2ID != null) { //if both countries are in the hashmap, get the distance between them
             HashMap<String, Integer> country1Distances = countryDistance.get(country1ID);
             
-            if (country1Distances != null) { //if the distance is not null, return the distance
+            if (country1Distances != null) { //if the distance is not null, get the distance
                 Integer distance = country1Distances.get(country2ID);
                 
                 if (distance != null) {
@@ -177,7 +176,7 @@ public class IRoadTrip {
                 }
             }
         }
-        return -1; //if the distance is null, return -1
+        return -1; //if the distance is null, return -1 (no path found)
     }
 
     public List<String> findPath (String country1, String country2) {
@@ -186,18 +185,17 @@ public class IRoadTrip {
         HashMap<String, Integer> distances = new HashMap<>(); //HashMap to store the distances of each node
         HashMap<String, String> previous = new HashMap<>(); //HashMap to store the previous node of each node
 
-        for (String node : country.keySet()) { //create nodes for every country and set the distance to infinity
+        for (String node : country.keySet()) { //create nodes for every country and sets the distance to infinity
             distances.put(node, Integer.MAX_VALUE);
         }
     
-        distances.put(country1, 0); //initialize the distance of the start node to 0
-        minHeap.add(new Node(country1, 0)); //add the start node to the priority queue
+        distances.put(country1, 0); //initializes the distance of the start node to 0
+        minHeap.add(new Node(country1, 0)); //add the start node to the priority queue with distance 0
         List<String> visitedNodes = new ArrayList<>(); //List of visited nodes for printing later 
     
-        // Process nodes in the priority queue
-        while (!minHeap.isEmpty()) { 
+        while (!minHeap.isEmpty()) { // Process nodes in the priority queue
             Node currentNode = minHeap.poll(); //get the node with the minimum distance
-            String current = currentNode.node; //get the country of the node with the minimum distance
+            String current = currentNode.node; //get the country name of the node with the minimum distance
 
             if(distances.get(current) == 1){ //if the distance is 1, it means that the country is a border country
                 continue;
@@ -228,7 +226,7 @@ public class IRoadTrip {
         }
         while (!country2.equals(country1)) { //loop through the previous nodes to get the path
             String prevCountry = previous.get(country2); //get the previous node
-            if(distances.get(country2) == null || distances.get(prevCountry) == null){ //if the distance is null, it means that there is no path
+            if(distances.get(country2) == null || distances.get(prevCountry) == null){ //if the distance is null, it means that there is no path (returns empty list)
                 return null;
             }
             int distance = distances.get(country2) - distances.get(prevCountry); //calculate the distance between the current node and the previous node
@@ -244,13 +242,13 @@ public class IRoadTrip {
             // Get user input for start and end countries
             try (Scanner scanner = new Scanner(System.in)) { //scanner to get user input
             generateSpecialCases(); //generate edge cases
-                while(true){ //loop until the user enters EXIT
+                while(true){ //loop until the user types EXIT
                 System.out.print("Enter the start country: "); 
                 String startCountry = scanner.nextLine().trim(); //get the start country
                 if(cases.containsKey(startCountry)){ //if the start country is in the edge cases hashmap, translate and convert
                     startCountry = cases.get(startCountry);
                 }
-                if(startCountry.equals("EXIT")){ //if the user enters EXIT, exit the program
+                if(startCountry.equals("EXIT")){ //if the user types EXIT, exit the program
                     break;
                 } else if (!country.containsKey(startCountry)){  //if the start country is not in the hashmap, ask the user to enter a valid country
                     System.out.println("Invalid country name. Please enter a valid country name.");
@@ -262,7 +260,7 @@ public class IRoadTrip {
                 if(cases.containsKey(endCountry)){ //if the end country is in the edge cases hashmap, translate and convert
                     endCountry = cases.get(endCountry);
                 }
-                if(endCountry.equals("EXIT")){ //if the user enters EXIT, exit the program
+                if(endCountry.equals("EXIT")){ //if the user tyepes EXIT, exit the program
                     break;
                 } else if (!country.containsKey(endCountry)){  //if the end country is not in the hashmap, ask the user to enter a valid country
                     System.out.println("Invalid country name. Please enter a valid country name.");
