@@ -42,8 +42,11 @@ I then send the distance back to the country HashMap and insert the correct dist
 
 ## FindingPath
 
-I load my country graph into the findPath method and begin incorporating Dijkstra's Algorithm on my HashMap graph. I created a Node Class that would be assigned a country's name and distance.
-I then set all the distances to infinity/Integer.MAX_VALUE except for the source node. I then put these nodes into a minHeap by comparing the weights/distances of each. Finally, my findPath method spits out all of the previous nodes visited as a list.
+<li>I load my country graph into the findPath method and begin incorporating Dijkstra's Algorithm on my HashMap graph</li>
+<li>I created a Node Class that would be assigned a country's name and distance.</li>
+<li>I then set all the distances to infinity/Integer.MAX_VALUE except for the source node</li>
+<li>I then put these nodes into a minHeap by comparing the weights/distances of each</li>
+<li>Finally, my findPath method spits out all of the previous nodes visited as a list</li>
 
 ```java
  public List<String> findPath (String country1, String country2) {
