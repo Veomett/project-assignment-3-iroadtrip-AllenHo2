@@ -48,6 +48,8 @@ I then send the distance back to the country HashMap and insert the correct dist
 <li>I then put these nodes into a minHeap by comparing the weights/distances of each</li>
 <li>Finally, my findPath method spits out all of the previous nodes visited as a list</li>
 
+Sample Snippet:
+
 ```java
  public List<String> findPath (String country1, String country2) {
         Set<String> visited = new HashSet<>(); 
